@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://dmitry-web.ru/sitemap.xml
