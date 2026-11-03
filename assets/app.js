@@ -82,6 +82,111 @@
     } else { visible = true; start(); }
   })();
 
+
+  /* ===== scroll effects ===== */
+  (function () {
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce || !("IntersectionObserver" in window)) { $$(".portrait, .chips").forEach(function (n) { n.classList.add("in"); }); return; }
+
+    /* 1. split headings into words */
+    $$(".sec h2, .hero h1, .art-h h1, .sec-head h2, .cta h2").forEach(function (h, k) {
+      if (h.classList.contains("split") || h.closest(".prose")) return;
+      var i = 0;
+      (function walk(node) {
+        Array.prototype.slice.call(node.childNodes).forEach(function (n) {
+          if (n.nodeType === 3) {
+            var parts = n.nodeValue.split(/( )/), frag = d.createDocumentFragment();
+            parts.forEach(function (p) {
+              if (p === "") return;
+              if (p === " ") { frag.appendChild(d.createTextNode(" ")); return; }
+              var w = d.createElement("span"), s = d.createElement("i");
+              w.className = "w"; s.textContent = p; s.style.setProperty("--i", i++); w.appendChild(s); frag.appendChild(w);
+            });
+            n.parentNode.replaceChild(frag, n);
+          } else if (n.nodeType === 1 && n.tagName !== "BR") { walk(n); }
+        });
+      })(h);
+      h.classList.add("split");
+    });
+    var io2 = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io2.unobserve(e.target); } });
+    }, { rootMargin: "0px 0px -10% 0px", threshold: .15 });
+    $$(".split, .portrait, .chips").forEach(function (n) { io2.observe(n); });
+    $$(".chips .chip").forEach(function (c, i) { c.style.setProperty("--i", i); });
+
+    /* 2. stagger siblings */
+    $$(".g3, .g4, .gl, .tech, .facts, .steps, .mess, .faq").forEach(function (g) {
+      Array.prototype.slice.call(g.children).forEach(function (c, i) { c.style.setProperty("--d", Math.min(i, 6) * 90 + "ms"); });
+    });
+
+    /* 3. counters */
+    function fmtN(v, grouped) { var s = String(Math.round(v)); return grouped ? s.replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0") : s; }
+    var counters = [];
+    $$(".chip b, .fact b, .price, .tech b").forEach(function (el) {
+      var tn = null;
+      Array.prototype.slice.call(el.childNodes).some(function (n) { if (n.nodeType === 3 && /\d/.test(n.nodeValue)) { tn = n; return true; } return false; });
+      if (!tn) return;
+      var t = tn.nodeValue, m = t.match(/\d[\d\s\u00a0]*/);
+      var raw = m[0].replace(/[\s\u00a0]+$/, ""), val = parseInt(raw.replace(/[\s\u00a0]/g, ""), 10);
+      if (!isFinite(val) || val < 1) return;
+      var grouped = /[\s\u00a0]/.test(raw), pre = t.slice(0, m.index), suf = t.slice(m.index + raw.length);
+      var span = d.createElement("span"); span.className = "cnt";
+      var frag = d.createDocumentFragment();
+      frag.appendChild(d.createTextNode(pre)); frag.appendChild(span); frag.appendChild(d.createTextNode(suf));
+      tn.parentNode.replaceChild(frag, tn);
+      span.textContent = fmtN(val, grouped);
+      span.style.minWidth = span.getBoundingClientRect().width + "px";
+      span.textContent = fmtN(0, grouped);
+      counters.push({ el: el, span: span, val: val, grouped: grouped });
+    });
+    function run(c) {
+      var t0 = performance.now(), dur = 1500;
+      (function tick(now) {
+        var k = Math.min(1, (now - t0) / dur), e = k === 1 ? 1 : 1 - Math.pow(2, -10 * k);
+        c.span.textContent = fmtN(c.val * e, c.grouped);
+        if (k < 1) requestAnimationFrame(tick);
+      })(t0);
+    }
+    var io3 = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        io3.unobserve(e.target);
+        var c = counters.filter(function (x) { return x.el === e.target; })[0];
+        (function go() { if (d.getElementById("pre")) { setTimeout(go, 200); } else { run(c); } })();
+      });
+    }, { threshold: .6 });
+    counters.forEach(function (c) { io3.observe(c.el); });
+
+    /* 4. parallax, progress bar, strip skew */
+    var sp = d.createElement("div"); sp.id = "sp"; sp.setAttribute("aria-hidden", "true"); d.body.appendChild(sp);
+    var pars = $$(".frame, .hero-bg, .speed-bg").map(function (n) {
+      return { n: n, bg: n.classList.contains("hero-bg") || n.classList.contains("speed-bg"), host: n.classList.contains("frame") ? n : n.parentNode };
+    });
+    var strip = $$(".strip a"), lastY = window.scrollY, sk = 0, ticking = false;
+    function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+    function update() {
+      ticking = false;
+      var y = window.scrollY, vh = window.innerHeight, max = d.documentElement.scrollHeight - vh;
+      sp.style.transform = "scaleX(" + (max > 0 ? y / max : 0) + ")";
+      pars.forEach(function (o) {
+        var r = o.host.getBoundingClientRect();
+        if (r.bottom < -100 || r.top > vh + 100) return;
+        var k = ((r.top + r.height / 2) - vh / 2) / vh;
+        if (o.bg) { o.n.style.setProperty("--py", (k * -40).toFixed(1) + "px"); }
+        else { o.n.style.setProperty("--py", (k * -5).toFixed(2) + "%"); }
+      });
+      var v = y - lastY; lastY = y;
+      var target = Math.max(-8, Math.min(8, v * -0.35));
+      sk += (target - sk) * 0.25;
+      if (Math.abs(sk) < 0.05 && Math.abs(target) < 0.05) sk = 0;
+      strip.forEach(function (a) { a.style.setProperty("--sk", sk.toFixed(2) + "deg"); });
+      if (Math.abs(sk) > 0.05) onScroll();
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    update();
+  })();
+
   /* helpers */
   function fmt(n) { return n.toLocaleString("ru-RU").replace(/ /g, " ") + " ₽"; }
   var T = {
