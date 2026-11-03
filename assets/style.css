@@ -1,8 +1,9 @@
-@font-face{font-family:Inter;font-weight:400;font-style:normal;font-display:swap;src:url(fonts/inter-400.woff2) format("woff2")}
-@font-face{font-family:Inter;font-weight:600;font-style:normal;font-display:swap;src:url(fonts/inter-600.woff2) format("woff2")}
-@font-face{font-family:Inter;font-weight:700;font-style:normal;font-display:swap;src:url(fonts/inter-700.woff2) format("woff2")}
+@font-face{font-family:Onest;font-weight:100 900;font-style:normal;font-display:swap;src:url(fonts/onest-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Onest;font-weight:100 900;font-style:normal;font-display:swap;src:url(fonts/onest-cyrillic-wght-normal.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:Unbounded;font-weight:200 900;font-style:normal;font-display:swap;src:url(fonts/unbounded-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Unbounded;font-weight:200 900;font-style:normal;font-display:swap;src:url(fonts/unbounded-cyrillic-wght-normal.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
 :root{--bg:#0a0a0a;--bg2:#101010;--card:#131313;--card2:#191919;--line:#262626;--line2:#333;--tx:#f4f4f4;--mut:#a3a3a3;--dim:#6f6f6f;--w:#fff;--r:14px;--max:1180px;--hh:68px;
---f:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+--fd:Unbounded,Onest,system-ui,sans-serif;--f:Onest,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--hh) + 12px)}
 body{margin:0;background:var(--bg);color:var(--tx);font:400 16px/1.65 var(--f);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
@@ -10,8 +11,9 @@ img,picture,svg,video{display:block;max-width:100%;height:auto}
 a{color:inherit;text-decoration-color:#555;text-underline-offset:3px}
 a:hover{text-decoration-color:var(--w)}
 h1,h2,h3,h4{margin:0 0 .5em;line-height:1.15;letter-spacing:-.02em;font-weight:700}
-h1{font-size:clamp(34px,6vw,68px)}
-h2{font-size:clamp(28px,4vw,46px)}
+h1,h2{font-family:var(--fd);font-weight:500;letter-spacing:-.035em;line-height:1.12}
+h1{font-size:clamp(28px,5.2vw,58px)}
+h2{font-size:clamp(23px,3.4vw,38px)}
 h3{font-size:clamp(19px,2vw,23px);letter-spacing:-.01em}
 p{margin:0 0 1em}
 ul,ol{margin:0 0 1em;padding-left:1.2em}
@@ -360,3 +362,11 @@ body{font-size:16px}
 
 .portrait picture{border-radius:28px;overflow:hidden}
 .portrait img{border-radius:28px}
+
+.price,.fact b,.sum,.orbit-cap p,.num{font-family:var(--fd);font-weight:500;letter-spacing:-.04em}
+.price{font-size:clamp(28px,3.4vw,40px)}
+.art-h h1{font-size:clamp(24px,3.8vw,44px)}
+.logo,.logo span{font-family:var(--fd);font-weight:600}
+.logo{letter-spacing:.08em;font-size:13px}
+h1,h2{overflow-wrap:anywhere}
+@media(max-width:480px){h1{font-size:clamp(22px,6.4vw,28px)}.art-h h1{font-size:clamp(21px,6vw,26px)}}
