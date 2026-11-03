@@ -41,6 +41,47 @@
     });
   }
 
+
+  /* orbit: smooth scroll-driven ring of ticks */
+  (function () {
+    var sec = $("#orbit"); if (!sec) return;
+    var cv = $(".orbit-cv", sec), ctx = cv.getContext("2d"), W = 0, H = 0, dpr = 1;
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var target = 0, p = reduce ? 1 : 0, visible = false, raf = 0, t0 = performance.now();
+    function size() { dpr = Math.min(window.devicePixelRatio || 1, 2); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+    function readScroll() { var r = sec.getBoundingClientRect(), total = sec.offsetHeight - window.innerHeight; target = total > 0 ? Math.max(0, Math.min(1, -r.top / total)) : 1; }
+    function draw(now) {
+      var time = (now - t0) / 1000, cx = W / 2, cy = H * 0.46, base = Math.min(W, H) * 0.30;
+      ctx.clearRect(0, 0, W, H);
+      var rings = [{ r: 1.00, n: 90, l: 16, s: 1 }, { r: 1.22, n: 110, l: 11, s: -1 }, { r: 1.46, n: 130, l: 7, s: 1 }, { r: 1.74, n: 150, l: 4, s: -1 }];
+      rings.forEach(function (g, gi) {
+        var rad = base * g.r * (0.6 + p * 0.55), rot = (p * 1.6 + time * 0.03) * g.s, a = Math.max(0, Math.min(1, p * 2.2 - gi * 0.12));
+        for (var i = 0; i < g.n; i++) {
+          var ang = rot + i / g.n * Math.PI * 2, c = Math.cos(ang), s = Math.sin(ang);
+          var pulse = 0.55 + 0.45 * Math.sin(ang * 3 + time * 0.8 + gi);
+          ctx.strokeStyle = "rgba(255,255,255," + (0.10 + 0.55 * pulse * a) * (1 - gi * 0.18) + ")";
+          ctx.lineWidth = gi === 0 ? 1.6 : 1.1;
+          ctx.beginPath(); ctx.moveTo(cx + c * rad, cy + s * rad); ctx.lineTo(cx + c * (rad + g.l * (0.5 + p)), cy + s * (rad + g.l * (0.5 + p))); ctx.stroke();
+        }
+      });
+      var dots = 70, dr = base * 2.15 * (0.6 + p * 0.55);
+      for (var k = 0; k < dots; k++) { var an = k / dots * Math.PI * 2 - time * 0.04; ctx.fillStyle = "rgba(255,255,255," + (0.12 + 0.2 * Math.abs(Math.sin(k * 1.7 + time))) + ")"; ctx.fillRect(cx + Math.cos(an) * dr, cy + Math.sin(an) * dr, 1.6, 1.6); }
+    }
+    function frame(now) {
+      raf = 0; readScroll();
+      p += (target - p) * 0.09; if (Math.abs(target - p) < 0.0005) p = target;
+      sec.style.setProperty("--p", p.toFixed(4)); draw(now);
+      if (visible) raf = requestAnimationFrame(frame);
+    }
+    function start() { if (!raf) raf = requestAnimationFrame(frame); }
+    size(); readScroll(); sec.style.setProperty("--p", p.toFixed(4)); draw(performance.now());
+    if (reduce) { return; }
+    window.addEventListener("resize", function () { size(); draw(performance.now()); });
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) start(); }, { rootMargin: "100px" }).observe(sec);
+    } else { visible = true; start(); }
+  })();
+
   /* helpers */
   function fmt(n) { return n.toLocaleString("ru-RU").replace(/ /g, " ") + " ₽"; }
   var T = {
