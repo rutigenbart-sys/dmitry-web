@@ -388,4 +388,8 @@ h1,h2{overflow-wrap:anywhere}
 @keyframes shine{0%,70%{left:-60%}100%{left:140%}}
 @media (prefers-reduced-motion:reduce){.scrub .sw{opacity:1!important}.js .btn::after{display:none}}
 
-.orbit-img img{aspect-ratio:3/4;object-fit:cover;object-position:36% 50%}
+.orbit-img img{aspect-ratio:3/4;object-fit:cover;object-position:50% 50%}
+
+/* phones: no blur filter while scrolling, keeps scrolling at 60fps */
+@media (hover:none),(max-width:700px){.js .rv:not(.frame){filter:none;transition:opacity .9s var(--ease),transform 1.1s var(--ease);transition-delay:var(--d,0ms)}.js .split .w>i{will-change:transform}}
+.orbit-img,.orbit-cv{backface-visibility:hidden}
