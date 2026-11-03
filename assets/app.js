@@ -42,9 +42,8 @@
   }
 
 
-  /* hero: monochrome code rain behind the portrait */
-  (function () {
-    var cv = $(".mx"); if (!cv) return;
+  /* hero: monochrome code rain behind the portrait and the calculator */
+  $$(".mx, .mx-q").forEach(function (cv) {
     var ctx = cv.getContext("2d"), W = 0, H = 0, cols = 0, drops = [], fs = 15, vis = false, last = 0, raf = 0, dpr = 1;
     var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
     var chars = "01{}<>/;=()[]#$%&*+-_|abcdefghijklmnopqrstuvwxyz".split("");
@@ -75,7 +74,7 @@
     window.addEventListener("resize", size);
     if ("IntersectionObserver" in window) { new IntersectionObserver(function (es) { vis = es[0].isIntersecting; if (vis && !raf) raf = requestAnimationFrame(loop); }, { rootMargin: "100px" }).observe(cv); }
     else { vis = true; raf = requestAnimationFrame(loop); }
-  })();
+  });
 
   /* orbit: ring flows with the page (no pinning) and spills over neighbouring blocks */
   (function () {
