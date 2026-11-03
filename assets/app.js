@@ -270,7 +270,7 @@
   var q = $("#quizform");
   if (q) {
     var steps = $$(".qstep", q), bars = $$(".qbar i", q), cur = 0;
-    var P = { landing: 15000, shop: 55000, card: 350 };
+    var P = { landing: 15000, shop: 55000, card: 350, rush: 30000 };
     var prepay = +q.getAttribute("data-prepay") || 5000;
     var st = { type: "landing", qty: 10, shopFrom: false, extras: [], addCards: false, addQty: 20 };
     var out = { sum: $(".sum", q), list: $(".qlist", q), pre: $(".qpre", q), note: $(".qnote", q) };
@@ -282,6 +282,7 @@
       $("#qty-out", q).textContent = qty;
       var aq = +q.elements.addqty.value || 1; $("#addqty-out", q).textContent = aq;
       if (t === "landing") { total = P.landing; rows.push([lab("rLanding"), fmt(P.landing)]); }
+      if (t === "rush") { total = P.rush; rows.push([lab("rRush"), fmt(P.rush)]); }
       if (t === "shop") { total = P.shop; from = true; rows.push([lab("rShop"), T.from + fmt(P.shop)]); var sv = q.elements.skus.value; rows.push([lab("rSkus"), sv]); }
       if (t === "card") { total = P.card * qty; rows.push([lab("rCards"), qty + " × " + fmt(P.card)]); }
       if (t !== "card" && q.elements.addcards.checked) { total += P.card * aq; rows.push([lab("rAddCards"), aq + " × " + fmt(P.card)]); }
@@ -293,6 +294,8 @@
       rows.forEach(function (r, i) { dts[i].textContent = r[0] + ":"; dds[i].textContent = r[1]; });
       if (t === "card") { out.pre.hidden = true; out.note.hidden = false; } else { out.pre.hidden = false; out.note.hidden = true; $(".pv", out.pre).textContent = fmt(prepay); }
       st.total = total; st.from = from; st.rows = rows;
+      var qt = $(".qterm", q); if (qt) qt.textContent = qt.getAttribute(t === "rush" ? "data-t24" : "data-t3");
+      q.classList.toggle("is-rush", t === "rush");
       /* toggle conditional blocks */
       $$("[data-for]", q).forEach(function (b) { b.hidden = b.getAttribute("data-for").split(" ").indexOf(t) < 0; });
       $("#addcards-box", q).hidden = (t === "card");

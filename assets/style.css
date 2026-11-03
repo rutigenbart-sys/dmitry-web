@@ -393,3 +393,14 @@ h1,h2{overflow-wrap:anywhere}
 /* phones: no blur filter while scrolling, keeps scrolling at 60fps */
 @media (hover:none),(max-width:700px){.js .rv:not(.frame){filter:none;transition:opacity .9s var(--ease),transform 1.1s var(--ease);transition-delay:var(--d,0ms)}.js .split .w>i{will-change:transform}}
 .orbit-img,.orbit-cv{backface-visibility:hidden}
+
+/* rush option */
+.opt.rush{border-color:rgba(255,69,58,.75);margin-top:6px;position:relative}
+.opt.rush:hover{border-color:#ff453a}
+.opt.rush:has(input:checked){border-color:#ff453a;background:#190d0c;box-shadow:0 0 0 1px rgba(255,69,58,.35)}
+.opt.rush input{accent-color:#ff453a}
+.rush-tag{font-style:normal;display:inline-flex;align-items:center;gap:6px;margin-left:10px;padding:2px 9px;border:1px solid #ff453a;border-radius:999px;color:#ff6a60;font-size:10.5px;font-weight:700;letter-spacing:.14em;vertical-align:middle}
+.rush-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:#ff453a;animation:rushp 1.4s ease-in-out infinite}
+@keyframes rushp{50%{opacity:.25;transform:scale(.7)}}
+.quiz.is-rush .qres .sum{color:#ff6a60}
+@media (prefers-reduced-motion:reduce){.rush-tag::before{animation:none}}
