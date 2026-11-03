@@ -404,3 +404,11 @@ h1,h2{overflow-wrap:anywhere}
 @keyframes rushp{50%{opacity:.25;transform:scale(.7)}}
 .quiz.is-rush .qres .sum{color:#ff6a60}
 @media (prefers-reduced-motion:reduce){.rush-tag::before{animation:none}}
+
+/* orbit v2: scrolls with the page, ring spills over neighbours */
+.orbit{height:auto;position:relative;z-index:2;overflow:visible;background:transparent}
+.orbit-stick{position:relative;top:auto;height:auto;overflow:visible;display:flex;flex-direction:column;align-items:center;padding:clamp(56px,9vh,110px) 0 clamp(40px,6vh,80px)}
+.orbit-cv{position:absolute;left:0;top:-45vh;width:100%;height:calc(100% + 90vh);pointer-events:none;z-index:0}
+.orbit-img{transform:translate3d(0,calc((.5 - var(--t,.5)) * 90px),0) scale(calc(.9 + var(--p,1) * .12));opacity:calc(.3 + var(--p,1) * .7)}
+.orbit-cap{position:relative;left:auto;right:auto;bottom:auto;margin-top:clamp(18px,4vh,40px);opacity:calc((var(--p,1) - .25) * 2.2);transform:translate3d(0,calc((.5 - var(--t,.5)) * 50px),0)}
+@media (prefers-reduced-motion:reduce){.orbit-stick{height:auto}.orbit-img,.orbit-cap{transform:none;opacity:1}}

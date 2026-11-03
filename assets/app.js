@@ -42,46 +42,50 @@
   }
 
 
-  /* orbit: smooth scroll-driven ring of ticks */
+  /* orbit: ring flows with the page (no pinning) and spills over neighbouring blocks */
   (function () {
     var sec = $("#orbit"); if (!sec) return;
-    var cv = $(".orbit-cv", sec), ctx = cv.getContext("2d"), W = 0, H = 0, dpr = 1;
+    var host = $(".orbit-stick", sec), cv = $(".orbit-cv", sec), ctx = cv.getContext("2d"), W = 0, H = 0, dpr = 1;
     var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var target = 0, p = reduce ? 1 : 0, visible = false, raf = 0, t0 = performance.now();
+    var visible = false, raf = 0, t0 = performance.now(), tt = 0.5, e = 1;
     function size() { dpr = Math.min(window.devicePixelRatio || 1, 2); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
-    function readScroll() { var r = sec.getBoundingClientRect(), total = sec.offsetHeight - window.innerHeight; target = total > 0 ? Math.max(0, Math.min(1, -r.top / (total * 0.55))) : 1; }
+    function read() {
+      var r = host.getBoundingClientRect(), vh = window.innerHeight;
+      var t = (vh - r.top) / (vh + r.height); tt = Math.max(0, Math.min(1, t));
+      e = Math.pow(Math.sin(Math.PI * tt), 0.7);
+    }
     function draw(now) {
-      var time = (now - t0) / 1000, cx = W / 2, cy = H * 0.46, base = Math.min(W, H) * 0.38;
+      var time = (now - t0) / 1000, cx = W / 2, cy = H / 2, base = Math.min(W, 1000) * 0.46;
       ctx.clearRect(0, 0, W, H);
-      var rings = [{ r: 1.00, n: 90, l: 16, s: 1 }, { r: 1.22, n: 110, l: 11, s: -1 }, { r: 1.46, n: 130, l: 7, s: 1 }, { r: 1.74, n: 150, l: 4, s: -1 }];
+      var rings = [{ r: 1.00, n: 90, l: 16, s: 1 }, { r: 1.24, n: 110, l: 11, s: -1 }, { r: 1.50, n: 130, l: 7, s: 1 }, { r: 1.80, n: 150, l: 4, s: -1 }];
+      var grow = 0.62 + tt * 0.8;
       rings.forEach(function (g, gi) {
-        var rad = base * g.r * (0.6 + p * 0.55), rot = (p * 1.6 + time * 0.03) * g.s, a = Math.max(0, Math.min(1, p * 2.2 - gi * 0.12));
+        var rad = base * g.r * grow, rot = (tt * 3.2 + time * 0.03) * g.s, a = Math.max(0, Math.min(1, e * 1.25 - gi * 0.08));
         for (var i = 0; i < g.n; i++) {
           var ang = rot + i / g.n * Math.PI * 2, c = Math.cos(ang), s = Math.sin(ang);
           var pulse = 0.55 + 0.45 * Math.sin(ang * 3 + time * 0.8 + gi);
-          ctx.strokeStyle = "rgba(255,255,255," + (0.10 + 0.55 * pulse * a) * (1 - gi * 0.18) + ")";
+          ctx.strokeStyle = "rgba(255,255,255," + ((0.08 + 0.5 * pulse * a) * (1 - gi * 0.16)).toFixed(3) + ")";
           ctx.lineWidth = gi === 0 ? 1.6 : 1.1;
-          ctx.beginPath(); ctx.moveTo(cx + c * rad, cy + s * rad); ctx.lineTo(cx + c * (rad + g.l * (0.5 + p)), cy + s * (rad + g.l * (0.5 + p))); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx + c * rad, cy + s * rad); ctx.lineTo(cx + c * (rad + g.l * (0.6 + e)), cy + s * (rad + g.l * (0.6 + e))); ctx.stroke();
         }
       });
-      var dots = 70, dr = base * 2.15 * (0.6 + p * 0.55);
-      for (var k = 0; k < dots; k++) { var an = k / dots * Math.PI * 2 - time * 0.04; ctx.fillStyle = "rgba(255,255,255," + (0.12 + 0.2 * Math.abs(Math.sin(k * 1.7 + time))) + ")"; ctx.fillRect(cx + Math.cos(an) * dr, cy + Math.sin(an) * dr, 1.6, 1.6); }
+      var dots = 80, dr = base * 2.1 * grow;
+      for (var k = 0; k < dots; k++) { var an = k / dots * Math.PI * 2 - time * 0.04; ctx.fillStyle = "rgba(255,255,255," + ((0.1 + 0.2 * Math.abs(Math.sin(k * 1.7 + time))) * e).toFixed(3) + ")"; ctx.fillRect(cx + Math.cos(an) * dr, cy + Math.sin(an) * dr, 1.6, 1.6); }
     }
     function frame(now) {
-      raf = 0; readScroll();
-      p += (target - p) * 0.2; if (Math.abs(target - p) < 0.0005) p = target;
-      sec.style.setProperty("--p", p.toFixed(4)); draw(now);
+      raf = 0; read();
+      sec.style.setProperty("--p", e.toFixed(3)); sec.style.setProperty("--t", tt.toFixed(3)); draw(now);
       if (visible) raf = requestAnimationFrame(frame);
     }
     function start() { if (!raf) raf = requestAnimationFrame(frame); }
-    size(); readScroll(); sec.style.setProperty("--p", p.toFixed(4)); draw(performance.now());
-    if (reduce) { return; }
-    window.addEventListener("resize", function () { size(); draw(performance.now()); });
+    size();
+    if (reduce) { tt = 0.5; e = 1; sec.style.setProperty("--p", "1"); sec.style.setProperty("--t", ".5"); draw(performance.now()); return; }
+    read(); sec.style.setProperty("--p", e.toFixed(3)); sec.style.setProperty("--t", tt.toFixed(3)); draw(performance.now());
+    window.addEventListener("resize", function () { size(); read(); draw(performance.now()); });
     if ("IntersectionObserver" in window) {
-      new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) start(); }, { rootMargin: "100px" }).observe(sec);
+      new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) start(); }, { rootMargin: "60% 0px" }).observe(host);
     } else { visible = true; start(); }
   })();
-
 
   /* ===== scroll effects ===== */
   (function () {
