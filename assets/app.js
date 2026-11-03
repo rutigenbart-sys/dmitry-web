@@ -308,9 +308,9 @@
   var q = $("#quizform");
   if (q) {
     var steps = $$(".qstep", q), bars = $$(".qbar i", q), cur = 0;
-    var P = { landing: 15000, shop: 55000, card: 350, rush: 30000 };
+    var P = { landing: 15000, shop: 55000, card: 350, rush: 30000, en: 4000, art: 3000, city: 3000 };
     var prepay = +q.getAttribute("data-prepay") || 5000;
-    var st = { type: "landing", qty: 10, shopFrom: false, extras: [], addCards: false, addQty: 20 };
+    var st = { type: "landing", qty: 10, shopFrom: false, xart: 1, xcity: 1, addCards: false, addQty: 20 };
     var out = { sum: $(".sum", q), list: $(".qlist", q), pre: $(".qpre", q), note: $(".qnote", q) };
     function lab(n) { var el = $("[data-lab=" + n + "]", q); return el ? el.textContent : n; }
     function calc() {
@@ -324,8 +324,11 @@
       if (t === "shop") { total = P.shop; from = true; rows.push([lab("rShop"), T.from + fmt(P.shop)]); var sv = q.elements.skus.value; rows.push([lab("rSkus"), sv]); }
       if (t === "card") { total = P.card * qty; rows.push([lab("rCards"), qty + " × " + fmt(P.card)]); }
       if (t !== "card" && q.elements.addcards.checked) { total += P.card * aq; rows.push([lab("rAddCards"), aq + " × " + fmt(P.card)]); }
-      var ex = $$("input[name=extra]:checked", q).map(function (i) { return i.value; });
-      if (ex.length) rows.push([lab("rExtra"), ex.join(", ")]);
+      if (t !== "card") {
+        if (q.elements.xen.checked) { total += P.en; rows.push([lab("rEn"), fmt(P.en)]); }
+        if (q.elements.xart.checked) { total += P.art * st.xart; rows.push([lab("rArt"), st.xart + " × " + fmt(P.art)]); }
+        if (q.elements.xcity.checked) { total += P.city * st.xcity; rows.push([lab("rCity"), st.xcity + " × " + fmt(P.city)]); }
+      }
       out.sum.textContent = (from ? T.from : "") + fmt(total);
       out.list.innerHTML = rows.map(function (r) { return "<dt></dt><dd></dd>"; }).join("");
       var dts = $$("dt", out.list), dds = $$("dd", out.list);
@@ -345,6 +348,19 @@
       bars.forEach(function (b, i) { b.classList.toggle("on", i <= cur); });
       if (cur > 0) { var r = q.getBoundingClientRect(); if (r.top < 0) { q.scrollIntoView({ behavior: "smooth", block: "start" }); } }
     }
+    $$(".stp", q).forEach(function (b) {
+      var k = b.getAttribute("data-k"), o = $("output", b), bt = $$("button", b);
+      function set(v) { st[k] = Math.max(1, Math.min(50, v)); o.textContent = st[k]; calc(); }
+      bt[0].addEventListener("click", function () { set(st[k] - 1); });
+      bt[1].addEventListener("click", function () { set(st[k] + 1); });
+    });
+    $$("input[name=xart],input[name=xcity]", q).forEach(function (i) { i.addEventListener("change", function () { $(".stp[data-k=" + i.name + "]", q).hidden = !i.checked; }); });
+    var nb = $("[data-none]", q);
+    if (nb) nb.addEventListener("click", function () {
+      ["xen", "xart", "xcity", "addcards"].forEach(function (n) { q.elements[n].checked = false; });
+      $$(".stp", q).forEach(function (b) { b.hidden = true; });
+      calc(); show(cur + 1); track("quiz_step_" + (cur + 1));
+    });
     q.addEventListener("change", calc);
     q.addEventListener("input", calc);
     $$("[data-next]", q).forEach(function (b) { b.addEventListener("click", function () { show(cur + 1); track("quiz_step_" + (cur + 1)); }); });
