@@ -49,9 +49,9 @@
     var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
     var target = 0, p = reduce ? 1 : 0, visible = false, raf = 0, t0 = performance.now();
     function size() { dpr = Math.min(window.devicePixelRatio || 1, 2); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
-    function readScroll() { var r = sec.getBoundingClientRect(), total = sec.offsetHeight - window.innerHeight; target = total > 0 ? Math.max(0, Math.min(1, -r.top / total)) : 1; }
+    function readScroll() { var r = sec.getBoundingClientRect(), total = sec.offsetHeight - window.innerHeight; target = total > 0 ? Math.max(0, Math.min(1, -r.top / (total * 0.55))) : 1; }
     function draw(now) {
-      var time = (now - t0) / 1000, cx = W / 2, cy = H * 0.46, base = Math.min(W, H) * 0.30;
+      var time = (now - t0) / 1000, cx = W / 2, cy = H * 0.46, base = Math.min(W, H) * 0.38;
       ctx.clearRect(0, 0, W, H);
       var rings = [{ r: 1.00, n: 90, l: 16, s: 1 }, { r: 1.22, n: 110, l: 11, s: -1 }, { r: 1.46, n: 130, l: 7, s: 1 }, { r: 1.74, n: 150, l: 4, s: -1 }];
       rings.forEach(function (g, gi) {
@@ -69,7 +69,7 @@
     }
     function frame(now) {
       raf = 0; readScroll();
-      p += (target - p) * 0.09; if (Math.abs(target - p) < 0.0005) p = target;
+      p += (target - p) * 0.2; if (Math.abs(target - p) < 0.0005) p = target;
       sec.style.setProperty("--p", p.toFixed(4)); draw(now);
       if (visible) raf = requestAnimationFrame(frame);
     }
