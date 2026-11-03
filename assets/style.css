@@ -324,7 +324,7 @@ body{font-size:16px}
 .orbit{height:150vh;position:relative;background:var(--bg)}
 .orbit-stick{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;display:grid;place-items:center}
 .orbit-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
-.orbit-img{position:relative;margin:0;width:min(640px,96vw);z-index:1;transform:translateY(calc((1 - var(--p,0)) * 40px)) scale(calc(.9 + var(--p,0) * .12));opacity:calc(.55 + var(--p,0) * .45);will-change:transform,opacity;
+.orbit-img{position:relative;margin:0;width:min(92vw,520px,calc(68vh * .75));z-index:1;transform:translateY(calc((1 - var(--p,0)) * 40px)) scale(calc(.9 + var(--p,0) * .12));opacity:calc(.55 + var(--p,0) * .45);will-change:transform,opacity;
 -webkit-mask-image:linear-gradient(#000 55%,transparent 100%),linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(#000 55%,transparent 100%),linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-composite:intersect}
 .orbit-img img{width:100%;height:auto;display:block}
 .orbit-cap{position:absolute;left:0;right:0;bottom:clamp(28px,7vh,72px);text-align:center;z-index:2;padding:0 20px;opacity:calc((var(--p,0) - .3) * 2.5);transform:translateY(calc((1 - var(--p,0)) * 24px))}
@@ -387,3 +387,5 @@ h1,h2{overflow-wrap:anywhere}
 .js .cta .btn::after{display:none}
 @keyframes shine{0%,70%{left:-60%}100%{left:140%}}
 @media (prefers-reduced-motion:reduce){.scrub .sw{opacity:1!important}.js .btn::after{display:none}}
+
+.orbit-img img{aspect-ratio:3/4;object-fit:cover;object-position:36% 50%}
