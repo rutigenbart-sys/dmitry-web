@@ -42,6 +42,41 @@
   }
 
 
+  /* hero: monochrome code rain behind the portrait */
+  (function () {
+    var cv = $(".mx"); if (!cv) return;
+    var ctx = cv.getContext("2d"), W = 0, H = 0, cols = 0, drops = [], fs = 15, vis = false, last = 0, raf = 0, dpr = 1;
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var chars = "01{}<>/;=()[]#$%&*+-_|abcdefghijklmnopqrstuvwxyz".split("");
+    function size() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2); W = cv.clientWidth; H = cv.clientHeight;
+      cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.font = "600 " + fs + "px ui-monospace,Menlo,Consolas,monospace";
+      cols = Math.ceil(W / fs); drops = [];
+      for (var i = 0; i < cols; i++) drops.push(Math.random() * H / fs * 1.1);
+    }
+    function step() {
+      ctx.globalCompositeOperation = "destination-out"; ctx.fillStyle = "rgba(0,0,0,.09)"; ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = "source-over";
+      for (var i = 0; i < cols; i++) {
+        var y = drops[i] * fs;
+        if (y > 0) {
+          ctx.fillStyle = "rgba(255,255,255," + (0.55 + Math.random() * 0.35).toFixed(2) + ")";
+          ctx.fillText(chars[(Math.random() * chars.length) | 0], i * fs, y);
+          ctx.fillStyle = "rgba(150,150,150,.55)";
+          ctx.fillText(chars[(Math.random() * chars.length) | 0], i * fs, y - fs);
+        }
+        if (y > H && Math.random() > 0.965) drops[i] = -Math.random() * 14;
+        drops[i] += 0.55 + (i % 5) * 0.12;
+      }
+    }
+    function loop(now) { raf = 0; if (now - last > 60) { last = now; step(); } if (vis) raf = requestAnimationFrame(loop); }
+    size();
+    if (reduce) { for (var k = 0; k < 40; k++) step(); return; }
+    window.addEventListener("resize", size);
+    if ("IntersectionObserver" in window) { new IntersectionObserver(function (es) { vis = es[0].isIntersecting; if (vis && !raf) raf = requestAnimationFrame(loop); }, { rootMargin: "100px" }).observe(cv); }
+    else { vis = true; raf = requestAnimationFrame(loop); }
+  })();
+
   /* orbit: ring flows with the page (no pinning) and spills over neighbouring blocks */
   (function () {
     var sec = $("#orbit"); if (!sec) return;

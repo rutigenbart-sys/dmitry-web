@@ -412,3 +412,14 @@ h1,h2{overflow-wrap:anywhere}
 .orbit-img{transform:translate3d(0,calc((.5 - var(--t,.5)) * 90px),0) scale(calc(.9 + var(--p,1) * .12));opacity:calc(.3 + var(--p,1) * .7)}
 .orbit-cap{position:relative;left:auto;right:auto;bottom:auto;margin-top:clamp(18px,4vh,40px);opacity:calc((var(--p,1) - .25) * 2.2);transform:translate3d(0,calc((.5 - var(--t,.5)) * 50px),0)}
 @media (prefers-reduced-motion:reduce){.orbit-stick{height:auto}.orbit-img,.orbit-cap{transform:none;opacity:1}}
+
+/* hero: matrix behind the portrait, spilling past the block */
+.hero{overflow-x:clip;overflow-y:visible;z-index:3}
+.bgclip{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.portrait picture{position:relative;z-index:1;border-radius:14px}
+.portrait img{border-radius:14px}
+.portrait figcaption{z-index:2}
+.mx{position:absolute;left:50%;top:-14%;width:min(100vw,920px);height:158%;transform:translateX(-50%);z-index:0;pointer-events:none;opacity:.95;
+-webkit-mask-image:radial-gradient(ellipse 52% 50% at 50% 46%,#000 38%,rgba(0,0,0,.55) 62%,transparent 100%);mask-image:radial-gradient(ellipse 52% 50% at 50% 46%,#000 38%,rgba(0,0,0,.55) 62%,transparent 100%)}
+@media (max-width:1020px){.mx{top:-6%;height:140%}}
+@media (max-width:1020px){.portrait picture{-webkit-mask-image:linear-gradient(180deg,#000 70%,transparent),linear-gradient(90deg,transparent,#000 30%,#000 88%,transparent);mask-image:linear-gradient(180deg,#000 70%,transparent),linear-gradient(90deg,transparent,#000 30%,#000 88%,transparent);-webkit-mask-composite:source-in;mask-composite:intersect}}
