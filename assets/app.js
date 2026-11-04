@@ -260,6 +260,17 @@
     update();
   })();
 
+  /* language switch: keep the current section when switching RU <-> EN */
+  $$(".lang a[hreflang]").forEach(function (a) {
+    a.addEventListener("click", function () {
+      var base = (a.getAttribute("href") || "").split("#")[0], id = "";
+      if (base !== "/" && base !== "/en/") return;
+      $$("section[id]").forEach(function (s) { if (s.getBoundingClientRect().top <= 140) id = s.id; });
+      if (!id && location.hash) id = location.hash.slice(1);
+      if (id && id !== "top" && d.getElementById(id)) a.setAttribute("href", base + "#" + id);
+    });
+  });
+
   /* helpers */
   function fmt(n) { return n.toLocaleString("ru-RU").replace(/ /g, " ") + " ₽"; }
   var T = {
