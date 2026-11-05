@@ -444,3 +444,49 @@ h1,h2{overflow-wrap:anywhere}
 button.opt.none{width:100%;text-align:left;color:inherit;font:inherit;border-style:dashed}
 button.opt.none:hover{border-color:#fff}
 .xopts[hidden]{display:none}
+
+/* guarantees: shield floats free of any frame, ringed by light, reveals with a spring */
+.gar{overflow:hidden}
+.gar .guar{grid-template-columns:1.05fr 1fr}
+.gshield{position:relative;min-height:clamp(340px,44vw,620px);display:grid;place-items:center;margin-left:clamp(-90px,-5vw,0px);--mx:0;--my:0;perspective:1100px}
+.gs-float{position:relative;width:min(118%,820px);z-index:2;transform:translate3d(calc(var(--mx)*14px),calc(var(--my)*10px),0) rotateY(calc(var(--mx)*6deg)) rotateX(calc(var(--my)*-5deg));transition:transform .4s ease-out}
+.gs-pic{display:block}
+.gs-float img{width:100%;height:auto;mix-blend-mode:screen;-webkit-mask-image:radial-gradient(ellipse 56% 60% at 50% 50%,#000 46%,rgba(0,0,0,.55) 70%,transparent 100%);mask-image:radial-gradient(ellipse 56% 60% at 50% 50%,#000 46%,rgba(0,0,0,.55) 70%,transparent 100%)}
+.gs-aura{position:absolute;inset:6% 0;background:radial-gradient(closest-side,rgba(120,160,255,.22),rgba(120,160,255,.06) 55%,transparent 75%);filter:blur(24px);z-index:0}
+.gs-ring{position:absolute;left:50%;top:50%;border-radius:50%;border:1px solid rgba(255,255,255,.16);z-index:1;pointer-events:none}
+.gs-r1{width:min(78%,500px);aspect-ratio:1;margin:calc(min(78%,500px)/-2) 0 0 calc(min(78%,500px)/-2)}
+.gs-r2{width:min(98%,640px);aspect-ratio:1;margin:calc(min(98%,640px)/-2) 0 0 calc(min(98%,640px)/-2);border-style:dashed;border-color:rgba(255,255,255,.1)}
+.gs-r3{width:min(120%,780px);aspect-ratio:1;margin:calc(min(120%,780px)/-2) 0 0 calc(min(120%,780px)/-2);border-color:rgba(255,255,255,.06)}
+.gs-sweep{position:absolute;left:50%;top:50%;width:min(98%,640px);aspect-ratio:1;margin:calc(min(98%,640px)/-2) 0 0 calc(min(98%,640px)/-2);border-radius:50%;background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,.0) 250deg,rgba(255,255,255,.28) 350deg,rgba(255,255,255,0) 360deg);-webkit-mask:radial-gradient(closest-side,transparent calc(100% - 2px),#000 calc(100% - 1px));mask:radial-gradient(closest-side,transparent calc(100% - 2px),#000 calc(100% - 1px));z-index:1;pointer-events:none}
+.gs-dot{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#fff;box-shadow:0 0 12px 3px rgba(255,255,255,.55);z-index:3;opacity:0}
+/* start state (only with JS, before the block scrolls into view) */
+.js .gshield:not(.in) .gs-float{opacity:0;transform:scale(.62) rotate(-8deg) translateY(40px);filter:blur(14px)}
+.js .gshield:not(.in) .gs-ring,.js .gshield:not(.in) .gs-sweep,.js .gshield:not(.in) .gs-aura{opacity:0;transform:scale(.55)}
+.js .gshield .gs-ring,.js .gshield .gs-sweep,.js .gshield .gs-aura{transition:opacity 1.4s ease .25s,transform 1.8s cubic-bezier(.16,1,.3,1) .15s}
+.js .gshield .gs-float{transition:opacity 1s ease,filter 1.1s ease,transform 1.6s cubic-bezier(.34,1.45,.5,1)}
+.js .gshield.in .gs-float{opacity:1;filter:none}
+.gshield.in .gs-float{animation:gsfloat 7s ease-in-out 1.6s infinite}
+.gshield.in .gs-r1{animation:gsspin 60s linear infinite}
+.gshield.in .gs-r2{animation:gsspin 90s linear infinite reverse}
+.gshield.in .gs-sweep{animation:gsspin 7s linear infinite}
+.gshield.in .gs-aura{animation:gspulse 5s ease-in-out infinite}
+.gshield.in .gs-dot{animation:gsorbit 14s linear infinite,gsdot 1.2s ease 1s both}
+.gs-d1{--rad:min(39vw,250px)}.gs-d2{--rad:min(49vw,320px);animation-duration:22s,1.2s!important;animation-direction:reverse,normal!important}
+.gs-d3{--rad:min(60vw,390px);animation-duration:30s,1.2s!important}.gs-d4{--rad:min(39vw,250px);animation-delay:-7s,1s!important}
+@keyframes gsfloat{0%,100%{translate:0 0}50%{translate:0 -16px}}
+@keyframes gsspin{to{transform:rotate(360deg)}}
+@keyframes gspulse{0%,100%{opacity:.75;scale:1}50%{opacity:1;scale:1.07}}
+@keyframes gsorbit{from{transform:rotate(0) translateX(var(--rad)) rotate(0)}to{transform:rotate(360deg) translateX(var(--rad)) rotate(-360deg)}}
+@keyframes gsdot{from{opacity:0}to{opacity:.9}}
+.gar .gl .card{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+@media(max-width:1020px){
+.gar .guar{grid-template-columns:1fr;gap:8px}
+.gshield{margin:0 -20px;min-height:clamp(300px,78vw,520px)}
+.gs-float{width:min(112%,620px)}
+.gs-r1{width:min(70%,380px);margin:calc(min(70%,380px)/-2) 0 0 calc(min(70%,380px)/-2)}
+.gs-r2{width:min(88%,480px);margin:calc(min(88%,480px)/-2) 0 0 calc(min(88%,480px)/-2)}
+.gs-r3{width:min(106%,580px);margin:calc(min(106%,580px)/-2) 0 0 calc(min(106%,580px)/-2)}
+.gs-sweep{width:min(88%,480px);margin:calc(min(88%,480px)/-2) 0 0 calc(min(88%,480px)/-2)}
+.gs-d1,.gs-d4{--rad:min(34vw,190px)}.gs-d2{--rad:min(43vw,240px)}.gs-d3{--rad:min(52vw,290px)}
+}
+@media (prefers-reduced-motion:reduce){.js .gshield:not(.in) .gs-float,.js .gshield:not(.in) .gs-ring,.js .gshield:not(.in) .gs-sweep,.js .gshield:not(.in) .gs-aura{opacity:1;transform:none;filter:none}.gshield.in .gs-float,.gshield.in .gs-ring,.gshield.in .gs-sweep,.gshield.in .gs-aura,.gshield.in .gs-dot{animation:none}.gs-dot{display:none}}

@@ -222,6 +222,73 @@
     update();
   })();
 
+  /* anchor scrolling: block lands centred in the area under the sticky header (or top-aligned if it is taller than the screen) */
+  (function () {
+    var hdr = $(".hdr"), raf = 0, stopFn = null;
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function hh() { return hdr ? hdr.offsetHeight : 68; }
+    var FOCUS = { quiz: "#quizform", services: ".g3" }; /* the part of the block that matters most */
+    function targetY(el) {
+      var vh = window.innerHeight, H = hh(), avail = vh - H, wrapEl = $(".wrap", el) || el, box = wrapEl;
+      var fs = FOCUS[el.id], fe = fs && $(fs, el);
+      if (fe && fe.getBoundingClientRect().height <= avail * 1.6) box = fe;
+      var r = box.getBoundingClientRect(), top = r.top + window.pageYOffset, h = r.height, y;
+      if (h + 40 < avail) { y = top - H - (avail - h) / 2; } else { y = top - H - 12; }
+      var max = Math.max(0, d.documentElement.scrollHeight - vh);
+      return Math.max(0, Math.min(max, Math.round(y)));
+    }
+    function jump(y) { window.scrollTo({ top: y, left: 0, behavior: "instant" }); }
+    function goTo(el, animate) {
+      if (stopFn) stopFn();
+      if (!animate || reduce) { jump(targetY(el)); setTimeout(function () { jump(targetY(el)); }, 350); return; }
+      var from = window.pageYOffset, t0 = performance.now(), dur = Math.min(1100, 450 + Math.abs(targetY(el) - from) * 0.25), cancelled = false;
+      function cancel() { cancelled = true; if (raf) cancelAnimationFrame(raf); raf = 0; stopFn = null; ["wheel", "touchstart", "keydown", "mousedown"].forEach(function (n) { window.removeEventListener(n, cancel); }); }
+      stopFn = cancel;
+      ["wheel", "touchstart", "keydown", "mousedown"].forEach(function (n) { window.addEventListener(n, cancel, { passive: true }); });
+      function step(now) {
+        if (cancelled) return;
+        var k = Math.min(1, (now - t0) / dur), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+        var y = targetY(el); /* re-read every frame: layout may shift while we scroll */
+        jump(from + (y - from) * e);
+        if (k < 1) { raf = requestAnimationFrame(step); }
+        else { cancel(); jump(targetY(el)); setTimeout(function () { jump(targetY(el)); }, 400); }
+      }
+      raf = requestAnimationFrame(step);
+    }
+    function idOf(a) {
+      var h = a.getAttribute("href") || "";
+      var m = h.match(/^(?:\/)?#([\w-]+)$/);
+      if (!m) return null;
+      if (h.charAt(0) === "/" && location.pathname !== "/" && location.pathname !== "/index.html") return null;
+      return m[1];
+    }
+    d.addEventListener("click", function (e) {
+      var a = e.target.closest && e.target.closest("a[href]");
+      if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || a.target === "_blank") return;
+      var id = idOf(a); if (!id) return;
+      var el = d.getElementById(id); if (!el) return;
+      e.preventDefault();
+      d.body.classList.remove("nav-open"); if (burger) burger.setAttribute("aria-expanded", "false");
+      if (id === "top") { window.scrollTo({ top: 0, behavior: reduce ? "instant" : "smooth" }); }
+      else { goTo(el, true); }
+      try { history.pushState(null, "", "#" + id); } catch (er) {}
+    });
+    /* direct open of /#quiz etc. */
+    var id0 = (location.hash || "").slice(1), el0 = id0 && d.getElementById(id0);
+    if (el0 && id0 !== "top") {
+      var fire = function () { goTo(el0, false); };
+      if (document.readyState === "complete") { setTimeout(fire, 250); } else { window.addEventListener("load", function () { setTimeout(fire, 450); }); }
+    }
+  })();
+
+  /* guarantees: the shield leans towards the cursor */
+  (function () {
+    var g = $(".gshield"); if (!g || !window.matchMedia || !matchMedia("(hover:hover)").matches) return;
+    var host = g.closest(".guar") || g;
+    host.addEventListener("mousemove", function (e) { var r = g.getBoundingClientRect(); g.style.setProperty("--mx", (((e.clientX - r.left) / r.width - .5) * 2).toFixed(2)); g.style.setProperty("--my", (((e.clientY - r.top) / r.height - .5) * 2).toFixed(2)); });
+    host.addEventListener("mouseleave", function () { g.style.setProperty("--mx", "0"); g.style.setProperty("--my", "0"); });
+  })();
+
   /* helpers */
   function fmt(n) { return n.toLocaleString("ru-RU").replace(/ /g, " ") + " ₽"; }
   var T = {
@@ -270,7 +337,7 @@
   var q = $("#quizform");
   if (q) {
     var steps = $$(".qstep", q), bars = $$(".qbar i", q), cur = 0;
-    var P = { landing: 15000, shop: 55000, card: 350, rush: 30000, en: 4000, art: 3000, city: 3000 };
+    var P = { landing: 15000, shop: 35000, shopFree: 20, shopExtra: 500, card: 350, rush: 30000, en: 4000, art: 3000, city: 3000 };
     var prepay = +q.getAttribute("data-prepay") || 5000;
     var st = { type: "landing", qty: 10, shopFrom: false, xart: 1, xcity: 1, addCards: false, addQty: 20 };
     var out = { sum: $(".sum", q), list: $(".qlist", q), pre: $(".qpre", q), note: $(".qnote", q) };
@@ -283,7 +350,11 @@
       var aq = +q.elements.addqty.value || 1; $("#addqty-out", q).textContent = aq;
       if (t === "landing") { total = P.landing; rows.push([lab("rLanding"), fmt(P.landing)]); }
       if (t === "rush") { total = P.rush; rows.push([lab("rRush"), fmt(P.rush)]); }
-      if (t === "shop") { total = P.shop; from = true; rows.push([lab("rShop"), T.from + fmt(P.shop)]); var sv = q.elements.skus.value; rows.push([lab("rSkus"), sv]); }
+      if (t === "shop") {
+        var sk = Math.max(P.shopFree, +q.elements.skus.value || P.shopFree), ex = sk - P.shopFree, so = $("#skus-out", q); if (so) so.textContent = sk;
+        total = P.shop; rows.push([lab("rShop"), fmt(P.shop)]); rows.push([lab("rSkus"), String(sk)]);
+        if (ex > 0) { total += ex * P.shopExtra; rows.push([lab("rMore"), ex + " × " + fmt(P.shopExtra)]); }
+      }
       if (t === "card") { total = P.card * qty; rows.push([lab("rCards"), qty + " × " + fmt(P.card)]); }
       if (t !== "card" && q.elements.addcards.checked) { total += P.card * aq; rows.push([lab("rAddCards"), aq + " × " + fmt(P.card)]); }
       if (t !== "card") {
