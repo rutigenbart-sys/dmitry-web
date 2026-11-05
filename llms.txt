@@ -4,7 +4,6 @@
 
 ## Основное
 - [Главная](https://dmitry-web.ru/): услуги, цены, калькулятор, условия
-- [English](https://dmitry-web.ru/en/): English version
 - [Условия работы](https://dmitry-web.ru/terms/)
 - [Политика конфиденциальности](https://dmitry-web.ru/privacy/)
 

@@ -184,44 +184,6 @@
       Array.prototype.slice.call(g.children).forEach(function (c, i) { c.style.setProperty("--d", Math.min(i, 6) * 90 + "ms"); });
     });
 
-    /* 3. counters */
-    function fmtN(v, grouped) { var s = String(Math.round(v)); return grouped ? s.replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0") : s; }
-    var counters = [];
-    $$(".chip b, .fact b, .price, .tech b").forEach(function (el) {
-      var tn = null;
-      Array.prototype.slice.call(el.childNodes).some(function (n) { if (n.nodeType === 3 && /\d/.test(n.nodeValue)) { tn = n; return true; } return false; });
-      if (!tn) return;
-      var t = tn.nodeValue, m = t.match(/\d[\d\s\u00a0]*/);
-      var raw = m[0].replace(/[\s\u00a0]+$/, ""), val = parseInt(raw.replace(/[\s\u00a0]/g, ""), 10);
-      if (!isFinite(val) || val < 1) return;
-      var grouped = /[\s\u00a0]/.test(raw), pre = t.slice(0, m.index), suf = t.slice(m.index + raw.length);
-      var span = d.createElement("span"); span.className = "cnt";
-      var frag = d.createDocumentFragment();
-      frag.appendChild(d.createTextNode(pre)); frag.appendChild(span); frag.appendChild(d.createTextNode(suf));
-      tn.parentNode.replaceChild(frag, tn);
-      span.textContent = fmtN(val, grouped);
-      span.style.minWidth = span.getBoundingClientRect().width + "px";
-      span.textContent = fmtN(0, grouped);
-      counters.push({ el: el, span: span, val: val, grouped: grouped });
-    });
-    function run(c) {
-      var t0 = performance.now(), dur = 1500;
-      (function tick(now) {
-        var k = Math.min(1, (now - t0) / dur), e = k === 1 ? 1 : 1 - Math.pow(2, -10 * k);
-        c.span.textContent = fmtN(c.val * e, c.grouped);
-        if (k < 1) requestAnimationFrame(tick);
-      })(t0);
-    }
-    var io3 = new IntersectionObserver(function (es) {
-      es.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        io3.unobserve(e.target);
-        var c = counters.filter(function (x) { return x.el === e.target; })[0];
-        (function go() { if (d.getElementById("pre")) { setTimeout(go, 200); } else { run(c); } })();
-      });
-    }, { threshold: .6 });
-    counters.forEach(function (c) { io3.observe(c.el); });
-
     /* 4. parallax, progress bar, strip skew */
     var sp = d.createElement("div"); sp.id = "sp"; sp.setAttribute("aria-hidden", "true"); d.body.appendChild(sp);
     var pars = $$(".frame, .hero-bg, .speed-bg").map(function (n) {
@@ -259,17 +221,6 @@
     window.addEventListener("resize", onScroll);
     update();
   })();
-
-  /* language switch: keep the current section when switching RU <-> EN */
-  $$(".lang a[hreflang]").forEach(function (a) {
-    a.addEventListener("click", function () {
-      var base = (a.getAttribute("href") || "").split("#")[0], id = "";
-      if (base !== "/" && base !== "/en/") return;
-      $$("section[id]").forEach(function (s) { if (s.getBoundingClientRect().top <= 140) id = s.id; });
-      if (!id && location.hash) id = location.hash.slice(1);
-      if (id && id !== "top" && d.getElementById(id)) a.setAttribute("href", base + "#" + id);
-    });
-  });
 
   /* helpers */
   function fmt(n) { return n.toLocaleString("ru-RU").replace(/ /g, " ") + " ₽"; }
