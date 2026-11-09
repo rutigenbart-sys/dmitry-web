@@ -369,6 +369,7 @@
       rows.forEach(function (r, i) { dts[i].textContent = r[0] + ":"; dds[i].textContent = r[1]; });
       if (t === "card") { out.pre.hidden = true; out.note.hidden = false; } else { out.pre.hidden = false; out.note.hidden = true; $(".pv", out.pre).textContent = fmt(prepay); }
       st.total = total; st.from = from; st.rows = rows;
+      var vol = $(".qvol", q); if (vol) vol.hidden = !(t !== "card" && ((q.elements.xart.checked && st.xart > 30) || (q.elements.xplace.checked && st.xplace > 30) || (q.elements.xcity.checked && st.xcity > 30)));
       var qt = $(".qterm", q); if (qt) qt.textContent = qt.getAttribute(t === "rush" ? "data-t24" : "data-t3");
       q.classList.toggle("is-rush", t === "rush");
       /* toggle conditional blocks */
@@ -384,7 +385,7 @@
     }
     $$(".stp", q).forEach(function (b) {
       var k = b.getAttribute("data-k"), o = $("output", b), bt = $$("button", b);
-      function set(v) { st[k] = Math.max(1, Math.min(50, v)); o.textContent = st[k]; calc(); }
+      function set(v) { st[k] = Math.max(1, Math.min(200, v)); o.textContent = st[k]; calc(); }
       bt[0].addEventListener("click", function () { set(st[k] - 1); });
       bt[1].addEventListener("click", function () { set(st[k] + 1); });
     });
