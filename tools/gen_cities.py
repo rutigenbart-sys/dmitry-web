@@ -9,7 +9,7 @@ from cities_data import EXISTING, NEW, CFO, SZFO, UFO_S, SKFO, PFO, URFO, SFO, D
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = "https://dmitry-web.ru"
 TODAY = "2026-11-05"
-CSS_V = "82129e1c"; JS_V = "40b6e91c"
+CSS_V = "82129e1c"; JS_V = "f26429e6"
 
 def read(p): return open(os.path.join(ROOT, p), encoding="utf-8").read()
 def write(p, s):
