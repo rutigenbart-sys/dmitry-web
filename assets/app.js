@@ -292,25 +292,26 @@
   /* helpers */
   function fmt(n) { return n.toLocaleString("ru-RU").replace(/ /g, " ") + " ₽"; }
   var T = {
-    ru: { sent: "Заявка отправлена. Я свяжусь с вами в ближайшее время и пришлю реквизиты для предоплаты.", sentSimple: "Спасибо! Заявка отправлена, я свяжусь с вами в ближайшее время.", fail: "Не удалось отправить автоматически. Открываю Telegram с готовым текстом — просто отправьте сообщение.", req: "Заполните имя и контакт и поставьте галочку согласия.", from: "от " },
-    en: { sent: "Request sent. I will contact you shortly with the prepayment details.", sentSimple: "Thank you! Your request has been sent, I will contact you shortly.", fail: "Could not send automatically. Opening Telegram with a ready message — just press send.", req: "Please fill in your name and contact and tick the consent box.", from: "from " }
+    ru: { sent: "Заявка отправлена. Я свяжусь с вами в ближайшее время и пришлю реквизиты для предоплаты.", sentSimple: "Спасибо! Заявка отправлена, я свяжусь с вами в ближайшее время.", fail: "Открываю Telegram: текст заявки уже в сообщении — просто нажмите «Отправить».", copy: "Открываю Telegram. Текст заявки скопирован — вставьте его в чат (долгое нажатие → «Вставить») и нажмите «Отправить».", req: "Заполните имя и контакт и поставьте галочку согласия.", from: "от " },
+    en: { sent: "Request sent. I will contact you shortly with the prepayment details.", sentSimple: "Thank you! Your request has been sent, I will contact you shortly.", fail: "Opening Telegram: your request text is already in the message — just press send.", copy: "Opening Telegram. Your request text is copied — paste it into the chat and press send.", req: "Please fill in your name and contact and tick the consent box.", from: "from " }
   }[lang];
 
   /* lead sending */
+  function copyText(s) {
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(s).catch(function () {}); return; } } catch (e) {}
+    try { var ta = document.createElement("textarea"); ta.value = s; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0"; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); } catch (e) {}
+  }
+  function tgLink(txt) {
+    /* с username в t.me текст подставляется сам; ссылка по номеру телефона текст не принимает, поэтому он ещё и копируется */
+    var base = cfg.tgUser ? "https://t.me/" + String(cfg.tgUser).replace(/^@/, "") : (cfg.telegram || "");
+    return base + (base.indexOf("?") > -1 ? "&" : "?") + "text=" + encodeURIComponent(txt);
+  }
+  function failMsg() { return cfg.tgUser ? T.fail : T.copy; }
   function sendLead(payload, done) {
-    var body = JSON.stringify(payload);
     var txt = payload.text;
-    function fallback() {
-      if (cfg.telegram) { window.open(cfg.telegram + (cfg.telegram.indexOf("?") > -1 ? "&" : "?") + "text=" + encodeURIComponent(txt), "_blank", "noopener"); }
-      done(false);
-    }
-    if (!cfg.endpoint) { fallback(); return; }
-    var ctl = ("AbortController" in window) ? new AbortController() : null;
-    var t = setTimeout(function () { if (ctl) ctl.abort(); }, 9000);
-    fetch(cfg.endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: body, signal: ctl ? ctl.signal : undefined, keepalive: true })
-      .then(function (r) { clearTimeout(t); return r.ok ? r.json().catch(function () { return {}; }) : Promise.reject(); })
-      .then(function (j) { if (j && j.ok === false) { fallback(); } else { done(true); } })
-      .catch(function () { clearTimeout(t); fallback(); });
+    copyText(txt);
+    if (cfg.telegram || cfg.tgUser) { window.open(tgLink(txt), "_blank", "noopener"); }
+    done(false);
   }
   function track(goal) { try { if (window.ym && cfg.metrika) { window.ym(cfg.metrika, "reachGoal", goal); } } catch (e) {} }
 
@@ -327,7 +328,7 @@
       btn.disabled = true;
       sendLead({ kind: "contact", name: name, contact: contact, message: f.elements.message ? f.elements.message.value : "", page: location.href, website: "", text: text, t: Date.now() - ts }, function (ok) {
         btn.disabled = false;
-        msg.className = ok ? "msg ok" : "msg err"; msg.textContent = ok ? T.sentSimple : T.fail;
+        msg.className = "msg ok"; msg.textContent = ok ? T.sentSimple : failMsg();
         if (ok) { f.reset(); track("lead_form"); }
       });
     });
@@ -413,7 +414,7 @@
       btn.disabled = true;
       sendLead({ kind: "quiz", name: name, contact: contact, message: q.elements.comment.value, page: location.href, website: "", text: text, total: st.total, t: Date.now() - qts }, function (ok) {
         btn.disabled = false;
-        msg.className = ok ? "msg ok" : "msg err"; msg.textContent = ok ? T.sent : T.fail;
+        msg.className = "msg ok"; msg.textContent = ok ? T.sent : failMsg();
         if (ok) { track("quiz_lead"); var pay = $("#payBtn", q); if (pay) pay.hidden = false; }
       });
     });
