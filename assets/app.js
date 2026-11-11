@@ -420,3 +420,39 @@
     });
   }
 })();
+
+/* count-up numbers: hero chips and "about" facts run from 0 to the final value when they appear */
+(function () {
+  var d = document, reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var els = Array.prototype.slice.call(d.querySelectorAll(".chip b, .fact b")), items = [];
+  els.forEach(function (b) {
+    var m = b.textContent.match(/^(\d+(?:[\s ]\d{3})*)(.*)$/);
+    if (!m) return;
+    var raw = m[1], to = parseInt(raw.replace(/[\s ]/g, ""), 10), sep = /[\s ]/.test(raw);
+    if (!to) return;
+    items.push({ b: b, to: to, sep: sep, tail: m[2], full: b.textContent });
+  });
+  if (!items.length || reduce || !("IntersectionObserver" in window)) return;
+  function fmt(n, it) { var s = String(n); if (it.sep) s = n.toLocaleString("ru-RU").replace(/[\s  ]/g, " "); return s + it.tail; }
+  items.forEach(function (it) {
+    var b = it.b; b.style.display = "inline-block"; b.style.minWidth = b.getBoundingClientRect().width + "px"; b.style.fontVariantNumeric = "tabular-nums";
+    b.textContent = fmt(0, it);
+  });
+  function run(it) {
+    var dur = 1500 + Math.min(it.to, 20000) / 20000 * 500, t0 = performance.now();
+    (function step(now) {
+      var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+      it.b.textContent = p < 1 ? fmt(Math.round(it.to * e), it) : it.full;
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      io.unobserve(e.target);
+      var it = items.filter(function (x) { return x.b === e.target; })[0];
+      (function go() { if (d.getElementById("pre")) setTimeout(go, 150); else setTimeout(function () { run(it); }, 250); })();
+    });
+  }, { threshold: .6 });
+  items.forEach(function (it) { io.observe(it.b); });
+})();
