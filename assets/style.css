@@ -492,3 +492,4 @@ button.opt.none:hover{border-color:#fff}
 @media (prefers-reduced-motion:reduce){.js .gshield:not(.in) .gs-float,.js .gshield:not(.in) .gs-ring,.js .gshield:not(.in) .gs-sweep,.js .gshield:not(.in) .gs-aura{opacity:1;transform:none;filter:none}.gshield.in .gs-float,.gshield.in .gs-ring,.gshield.in .gs-sweep,.gshield.in .gs-aura,.gshield.in .gs-dot{animation:none}.gs-dot{display:none}}
 
 .orbit-img{aspect-ratio:9/16;width:min(92vw,520px,calc(68vh * .5625));}.orbit-video{width:100%;height:100%;display:block;object-fit:cover;aspect-ratio:9/16;pointer-events:none}
+@media (min-width:900px){.orbit-img{aspect-ratio:16/9;width:min(86vw,880px,calc(66vh * 1.7778))}.orbit-video{aspect-ratio:16/9}}
