@@ -342,6 +342,7 @@
     var prepay = +q.getAttribute("data-prepay") || 5000;
     var st = { type: "landing", qty: 10, shopFrom: false, xart: 1, xplace: 1, xcity: 1, addCards: false, addQty: 20 };
     var out = { sum: $(".sum", q), list: $(".qlist", q), pre: $(".qpre", q), note: $(".qnote", q) };
+    function cnt(el, t) { if (el && el.getAttribute("data-live") && window.DWcount) window.DWcount(el, t); else if (el) el.textContent = t; }
     function lab(n) { var el = $("[data-lab=" + n + "]", q); return el ? el.textContent : n; }
     function calc() {
       var t = (q.elements.type.value) || "landing", total = 0, from = false, rows = [];
@@ -364,11 +365,11 @@
         if (q.elements.xplace.checked) { total += P.place * st.xplace; rows.push([lab("rPlace"), st.xplace + " × " + fmt(P.place)]); }
         if (q.elements.xcity.checked) { total += P.city * st.xcity; rows.push([lab("rCity"), st.xcity + " × " + fmt(P.city)]); }
       }
-      out.sum.textContent = (from ? T.from : "") + fmt(total);
+      cnt(out.sum, (from ? T.from : "") + fmt(total));
       out.list.innerHTML = rows.map(function (r) { return "<dt></dt><dd></dd>"; }).join("");
       var dts = $$("dt", out.list), dds = $$("dd", out.list);
       rows.forEach(function (r, i) { dts[i].textContent = r[0] + ":"; dds[i].textContent = r[1]; });
-      if (t === "card") { out.pre.hidden = true; out.note.hidden = false; } else { out.pre.hidden = false; out.note.hidden = true; $(".pv", out.pre).textContent = fmt(prepay); }
+      if (t === "card") { out.pre.hidden = true; out.note.hidden = false; } else { out.pre.hidden = false; out.note.hidden = true; cnt($(".pv", out.pre), fmt(prepay)); }
       st.total = total; st.from = from; st.rows = rows;
       var vol = $(".qvol", q); if (vol) vol.hidden = !(t !== "card" && ((q.elements.xart.checked && st.xart > 30) || (q.elements.xplace.checked && st.xplace > 30) || (q.elements.xcity.checked && st.xcity > 30)));
       var qt = $(".qterm", q); if (qt) qt.textContent = qt.getAttribute(t === "rush" ? "data-t24" : "data-t3");
@@ -455,4 +456,50 @@
     });
   }, { threshold: .6 });
   items.forEach(function (it) { io.observe(it.b); });
+})();
+
+/* count-up for calculator and price numbers: from 0 on first view, smooth tween on changes */
+(function () {
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var RE = /\d+(?:[\u00a0\u202f ]\d{3})*/g;
+  function nums(t) { return (t.match(RE) || []).map(function (x) { return parseInt(x.replace(/[\u00a0\u202f ]/g, ""), 10); }); }
+  function fmtN(n, big) { var s = String(n); if (big || n >= 1000) s = n.toLocaleString("ru-RU").replace(/[\u202f ]/g, "\u00a0"); return s; }
+  function build(t, vals) { var i = 0; return t.replace(RE, function (m) { var v = Math.round(vals[i++]); return fmtN(v, /[\u00a0\u202f ]/.test(m)); }); }
+  function node(el) { for (var i = 0; i < el.childNodes.length; i++) { var c = el.childNodes[i]; if (c.nodeType === 3 && /\d/.test(c.nodeValue)) return c; } return null; }
+  function tween(el, to, from, dur) {
+    if (el.__raf) cancelAnimationFrame(el.__raf);
+    var nd = node(el), tn = nums(to);
+    if (!nd) { el.textContent = to; return; }
+    if (reduce || !tn.length || tn.length !== from.length) { nd.nodeValue = to; return; }
+    var t0 = performance.now();
+    (function step(now) {
+      var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+      nd.nodeValue = p < 1 ? build(to, tn.map(function (v, i) { return from[i] + (v - from[i]) * e; })) : to;
+      el.__raf = p < 1 ? requestAnimationFrame(step) : 0;
+    })(t0);
+  }
+  window.DWcount = function (el, to) { var nd = node(el); tween(el, to, nd ? nums(nd.nodeValue) : [], 700); };
+  function fromZero(el) { var nd = node(el); if (!nd) return; var t = nd.nodeValue; tween(el, t, nums(t).map(function () { return 0; }), 1500); }
+  if (reduce || !("IntersectionObserver" in window)) { Array.prototype.forEach.call(document.querySelectorAll(".sum, .pv"), function (e) { e.setAttribute("data-live", "1"); }); return; }
+  function when(el, fn, th) {
+    var io = new IntersectionObserver(function (es) {
+      if (!es[0].isIntersecting) return; io.disconnect();
+      (function go() { if (document.getElementById("pre")) setTimeout(go, 150); else setTimeout(fn, 200); })();
+    }, { threshold: th || .5 });
+    io.observe(el);
+  }
+  /* zero them out until they are seen */
+  function zero(el) { var nd = node(el); if (!nd) return null; var t = nd.nodeValue; nd.nodeValue = build(t, nums(t).map(function () { return 0; })); return t; }
+  Array.prototype.forEach.call(document.querySelectorAll(".price, .opt .p"), function (el) {
+    var nd = node(el); if (!nd) return; var t = zero(el);
+    when(el, function () { nd.nodeValue = t; fromZero(el); }, .6);
+  });
+  var res = document.querySelector(".qres");
+  if (res) {
+    var targets = [".sum", ".pv"].map(function (q) { return res.querySelector(q); }).filter(Boolean);
+    when(res, function () {
+      targets.forEach(function (el) { fromZero(el); setTimeout(function () { el.setAttribute("data-live", "1"); }, 1600); });
+      Array.prototype.forEach.call(res.querySelectorAll(".qlist dd"), fromZero);
+    }, .4);
+  }
 })();
